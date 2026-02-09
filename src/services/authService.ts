@@ -15,7 +15,10 @@ interface LoginResponse {
 
 const authService = {
     async login(credentials: object): Promise<LoginResponse> {
+        await api.get('http://localhost:8000/sanctum/csrf-cookie');
+
         const { data } = await api.post<LoginResponse>('/login', credentials);
+        
         localStorage.setItem('token', data.access_token);
         localStorage.setItem('user', JSON.stringify(data.user));
         return data;
