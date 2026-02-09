@@ -10,38 +10,48 @@ import AddItemDialog from './AddItemDialog';
 interface FoodSelectorProps {
   orderId: number;
   onItemAdded: () => void;
+  disabled?: boolean;
 }
 
-const FoodSelector = ({ orderId, onItemAdded }: FoodSelectorProps) => {
+const FoodSelector = ({ orderId, onItemAdded, disabled = false }: FoodSelectorProps) => {
   const [foods, setFoods] = useState<any[]>([]);
   const [search, setSearch] = useState('');
   const [category, setCategory] = useState('food');
   
-  // Dialog State
+  // Single state to manage the dialog: if selectedFood is not null, dialog is open
   const [selectedFood, setSelectedFood] = useState<any | null>(null);
 
   useEffect(() => {
     const fetchMenu = async () => {
-      const { data } = await api.get('/food');
-      setFoods(data.data);
+      try {
+        const { data } = await api.get('/food');
+        setFoods(data.data);
+      } catch (err) {
+        console.error("Menu fetch failed", err);
+      }
     };
     fetchMenu();
   }, []);
 
-  // Filter logic: Match category AND search text
   const filteredFoods = foods.filter(f => 
     f.category === category && 
     f.name.toLowerCase().includes(search.toLowerCase())
   );
 
   return (
-    <Paper elevation={3} sx={{ p: 2, height: '100%', borderRadius: 2 }}>
-      <Typography variant="h6" sx={{ mb: 2, fontWeight: 'bold' }}>Add Items</Typography>
+    <Paper elevation={3} sx={{ 
+      p: 2, 
+      height: '100%', 
+      borderRadius: 2, 
+      opacity: disabled ? 0.6 : 1, 
+      pointerEvents: disabled ? 'none' : 'auto' 
+    }}>
+      <Typography variant="h6" sx={{ mb: 2, fontWeight: 'bold' }}>Menu Selection</Typography>
       
       <TextField
         fullWidth
         size="small"
-        placeholder="Search menu..."
+        placeholder="Search food or drinks..."
         value={search}
         onChange={(e) => setSearch(e.target.value)}
         sx={{ mb: 2 }}
@@ -64,16 +74,20 @@ const FoodSelector = ({ orderId, onItemAdded }: FoodSelectorProps) => {
         <Tab label="Drinks" value="drink" />
       </Tabs>
 
-      <Box sx={{ height: '500px', overflowY: 'auto' }}>
+      <Box sx={{ height: '500px', overflowY: 'auto', pr: 1 }}>
         <ImageList cols={2} gap={12}>
           {filteredFoods.map((item) => (
             <ImageListItem 
               key={item.id} 
-              sx={{ cursor: 'pointer', '&:hover': { opacity: 0.8 } }}
+              sx={{ 
+                cursor: 'pointer', 
+                transition: '0.2s',
+                '&:hover': { transform: 'scale(1.02)' } 
+              }}
               onClick={() => setSelectedFood(item)}
             >
               <img
-                src={item.image_url}
+                src={item.image_url || 'https://via.placeholder.com/150'}
                 alt={item.name}
                 loading="lazy"
                 style={{ borderRadius: '8px', height: '120px', objectFit: 'cover' }}
@@ -93,9 +107,10 @@ const FoodSelector = ({ orderId, onItemAdded }: FoodSelectorProps) => {
         </ImageList>
       </Box>
 
+      {/* Logic: Dialog only exists in DOM if selectedFood is present */}
       {selectedFood && (
         <AddItemDialog
-          open={!!selectedFood}
+          open={Boolean(selectedFood)}
           food={selectedFood}
           orderId={orderId}
           onClose={() => setSelectedFood(null)}
