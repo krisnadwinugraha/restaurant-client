@@ -8,6 +8,7 @@ import MainLayout from './layouts/MainLayout'; // Import your new layout
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
 import FoodMaster from './pages/FoodMaster';
+import OrderDetail from './pages/OrderDetail';
 
 export default function App() {
   return (
@@ -23,6 +24,7 @@ export default function App() {
               <Route path="/" element={<Dashboard />} />
               <Route path="/food" element={<FoodMaster />} />
               <Route path="/orders" element={<div>Order List Placeholder</div>} />
+              <Route path="/orders/:id" element={<OrderDetail />} />
             </Route>
           </Route>
 

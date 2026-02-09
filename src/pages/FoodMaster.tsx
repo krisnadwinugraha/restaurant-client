@@ -6,15 +6,24 @@ import {
 import { Add as AddIcon, Edit as EditIcon, Delete as DeleteIcon } from '@mui/icons-material';
 import api from '../api/axios';
 import FoodFormDialog from '../components/FoodFormDialog';
+import DeleteConfirmDialog from '../components/DeleteConfirmDialog';
 
 const FoodMaster = () => {
   const [foods, setFoods] = useState<any[]>([]);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [selectedFood, setSelectedFood] = useState<any | null>(null);
 
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [itemToDelete, setItemToDelete] = useState<any | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+
   const fetchFoods = async () => {
-    const { data } = await api.get('/food');
-    setFoods(data.data);
+    try {
+      const { data } = await api.get('/food');
+      setFoods(data.data);
+    } catch (err) {
+      console.error("Fetch failed", err);
+    }
   };
 
   useEffect(() => { fetchFoods(); }, []);
@@ -24,10 +33,24 @@ const FoodMaster = () => {
     setDialogOpen(true);
   };
 
-  const handleDelete = async (id: number) => {
-    if (window.confirm('Are you sure you want to delete this item?')) {
-      await api.delete(`/food/${id}`);
+  const handleDeleteClick = (food: any) => {
+    setItemToDelete(food);
+    setDeleteDialogOpen(true);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!itemToDelete) return;
+
+    setIsDeleting(true);
+    try {
+      await api.delete(`/food/${itemToDelete.id}`);
+      setDeleteDialogOpen(false);
       fetchFoods();
+    } catch (err) {
+      console.error("Delete failed", err);
+    } finally {
+      setIsDeleting(false);
+      setItemToDelete(null);
     }
   };
 
@@ -65,10 +88,14 @@ const FoodMaster = () => {
                 <TableCell>
                   <Chip label={food.category} size="small" variant="outlined" />
                 </TableCell>
-                <TableCell align="right">${food.price.toFixed(2)}</TableCell>
+                <TableCell align="right">${Number(food.price).toFixed(2)}</TableCell>
                 <TableCell align="center">
-                  <IconButton onClick={() => handleEdit(food)} color="primary"><EditIcon /></IconButton>
-                  <IconButton onClick={() => handleDelete(food.id)} color="error"><DeleteIcon /></IconButton>
+                  <IconButton onClick={() => handleEdit(food)} color="primary">
+                    <EditIcon />
+                  </IconButton>
+                  <IconButton onClick={() => handleDeleteClick(food)} color="error">
+                    <DeleteIcon />
+                  </IconButton>
                 </TableCell>
               </TableRow>
             ))}
@@ -81,6 +108,14 @@ const FoodMaster = () => {
         food={selectedFood} 
         onClose={() => setDialogOpen(false)} 
         onSuccess={() => { setDialogOpen(false); fetchFoods(); }} 
+      />
+
+      <DeleteConfirmDialog 
+        open={deleteDialogOpen}
+        title={itemToDelete?.name || ''}
+        loading={isDeleting}
+        onClose={() => setDeleteDialogOpen(false)}
+        onConfirm={handleConfirmDelete}
       />
     </Box>
   );
