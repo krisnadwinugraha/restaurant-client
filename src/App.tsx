@@ -19,18 +19,11 @@ export default function App() {
 
           {/* All Protected Routes go inside the Gatekeeper (ProtectedRoute) */}
           <Route element={<ProtectedRoute />}>
-            
-            {/* Everything inside MainLayout will have the Sidebar & Navbar */}
             <Route element={<MainLayout />}>
               <Route path="/" element={<Dashboard />} />
+              <Route path="/food" element={<FoodMaster />} />
               <Route path="/orders" element={<div>Order List Placeholder</div>} />
-              
-              {/* You can nest role-specific routes inside the layout too */}
-              <Route element={<ProtectedRoute allowedRoles={['admin', 'waiter']} />}>
-                <Route path="/food" element={<FoodMaster />} />
-              </Route>
             </Route>
-
           </Route>
 
           {/* Fallback */}

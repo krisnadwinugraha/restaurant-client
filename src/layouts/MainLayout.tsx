@@ -1,15 +1,15 @@
 import React, { useState } from 'react';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import {
-  Box, Drawer, AppBar, Toolbar, List, Typography, Divider,
-  IconButton, ListItem, ListItemButton, ListItemIcon, ListItemText, Avatar, Button
+  Box, Drawer, AppBar, Toolbar, List, Typography, Divider, IconButton,
+  ListItem, ListItemButton, ListItemIcon, ListItemText, Avatar, useTheme, useMediaQuery
 } from '@mui/material';
 import {
   Menu as MenuIcon,
   Dashboard as DashboardIcon,
   Restaurant as FoodIcon,
-  Logout as LogoutIcon,
-  ShoppingCart as OrderIcon
+  Receipt as OrderIcon,
+  Logout as LogoutIcon
 } from '@mui/icons-material';
 import { useAuth } from '../context/AuthContext';
 
@@ -19,6 +19,8 @@ const MainLayout = () => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const [mobileOpen, setMobileOpen] = useState(false);
 
   const menuItems = [
@@ -29,20 +31,23 @@ const MainLayout = () => {
 
   const handleDrawerToggle = () => setMobileOpen(!mobileOpen);
 
-  const drawer = (
-    <div>
+  const drawerContent = (
+    <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
       <Toolbar>
-        <Typography variant="h6" noWrap component="div" fontWeight="bold">
+        <Typography variant="h6" fontWeight="bold" color="primary">
           RestoAPI
         </Typography>
       </Toolbar>
       <Divider />
-      <List>
+      <List sx={{ flexGrow: 1 }}>
         {menuItems.filter(item => item.roles.includes(user?.role || '')).map((item) => (
           <ListItem key={item.text} disablePadding>
             <ListItemButton 
               selected={location.pathname === item.path}
-              onClick={() => navigate(item.path)}
+              onClick={() => {
+                navigate(item.path);
+                if (isMobile) setMobileOpen(false);
+              }}
             >
               <ListItemIcon sx={{ color: location.pathname === item.path ? 'primary.main' : 'inherit' }}>
                 {item.icon}
@@ -55,59 +60,50 @@ const MainLayout = () => {
       <Divider />
       <List>
         <ListItem disablePadding>
-          <ListItemButton onClick={logout}>
+          <ListItemButton onClick={logout} sx={{ color: 'error.main' }}>
             <ListItemIcon><LogoutIcon color="error" /></ListItemIcon>
             <ListItemText primary="Logout" />
           </ListItemButton>
         </ListItem>
       </List>
-    </div>
+    </Box>
   );
 
   return (
     <Box sx={{ display: 'flex' }}>
       <AppBar position="fixed" sx={{ zIndex: (theme) => theme.zIndex.drawer + 1 }}>
         <Toolbar>
-          <IconButton color="inherit" edge="start" onClick={handleDrawerToggle} sx={{ mr: 2, display: { sm: 'none' } }}>
+          <IconButton color="inherit" edge="start" onClick={handleDrawerToggle} sx={{ mr: 2, display: { md: 'none' } }}>
             <MenuIcon />
           </IconButton>
-          <Typography variant="h6" noWrap component="div" sx={{ flexGrow: 1 }}>
-            Restaurant Management
+          <Typography variant="h6" noWrap sx={{ flexGrow: 1 }}>
+            {menuItems.find(i => i.path === location.pathname)?.text || 'Restaurant Management'}
           </Typography>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-            <Typography variant="body2" sx={{ display: { xs: 'none', sm: 'block' } }}>
-              {user?.name} ({user?.role})
-            </Typography>
-            <Avatar sx={{ bgcolor: 'secondary.main', width: 32, height: 32 }}>
-              {user?.name[0]}
-            </Avatar>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+            <Box sx={{ textAlign: 'right', display: { xs: 'none', sm: 'block' } }}>
+              <Typography variant="body2" fontWeight="bold">{user?.name}</Typography>
+              <Typography variant="caption" sx={{ opacity: 0.8, textTransform: 'capitalize' }}>{user?.role}</Typography>
+            </Box>
+            <Avatar sx={{ bgcolor: 'secondary.main' }}>{user?.name[0]}</Avatar>
           </Box>
         </Toolbar>
       </AppBar>
 
-      <Box component="nav" sx={{ width: { sm: drawerWidth }, flexShrink: { sm: 0 } }}>
-        {/* Mobile Drawer */}
+      <Box component="nav" sx={{ width: { md: drawerWidth }, flexShrink: { md: 0 } }}>
         <Drawer
-          variant="temporary"
-          open={mobileOpen}
+          variant={isMobile ? 'temporary' : 'permanent'}
+          open={isMobile ? mobileOpen : true}
           onClose={handleDrawerToggle}
-          ModalProps={{ keepMounted: true }}
-          sx={{ display: { xs: 'block', sm: 'none' }, '& .MuiDrawer-paper': { boxSizing: 'border-box', width: drawerWidth } }}
+          sx={{
+            '& .MuiDrawer-paper': { boxSizing: 'border-box', width: drawerWidth },
+          }}
         >
-          {drawer}
-        </Drawer>
-        {/* Desktop Drawer */}
-        <Drawer
-          variant="permanent"
-          sx={{ display: { xs: 'none', sm: 'block' }, '& .MuiDrawer-paper': { boxSizing: 'border-box', width: drawerWidth } }}
-          open
-        >
-          {drawer}
+          {drawerContent}
         </Drawer>
       </Box>
 
-      <Box component="main" sx={{ flexGrow: 1, p: 3, width: { sm: `calc(100% - ${drawerWidth}px)` } }}>
-        <Toolbar />
+      <Box component="main" sx={{ flexGrow: 1, p: 3, width: { md: `calc(100% - ${drawerWidth}px)` } }}>
+        <Toolbar /> {/* Spacer for the fixed AppBar */}
         <Outlet />
       </Box>
     </Box>
