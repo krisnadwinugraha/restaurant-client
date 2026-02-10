@@ -1,12 +1,11 @@
 import * as React from 'react';
 import * as ReactDOM from 'react-dom/client';
 import App from './App.tsx';
-import { AuthProvider } from './context/AuthContext';
+import { CssBaseline } from '@mui/material'; 
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
-    <AuthProvider>
-      <App />
-    </AuthProvider>
+    <CssBaseline />
+    <App />
   </React.StrictMode>,
 );

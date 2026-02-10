@@ -5,6 +5,7 @@ export interface User {
     name: string;
     email: string;
     role: 'admin' | 'waiter' | 'cashier';
+    roles: 'admin' | 'waiter' | 'cashier';
 }
 
 interface LoginResponse {
@@ -15,7 +16,8 @@ interface LoginResponse {
 
 const authService = {
     async login(credentials: object): Promise<LoginResponse> {
-        await api.get('http://localhost:8000/sanctum/csrf-cookie');
+        const baseUrl = import.meta.env.VITE_API_BASE_URL;
+        await api.get(`${baseUrl}/sanctum/csrf-cookie`);
 
         const { data } = await api.post<LoginResponse>('/login', credentials);
         

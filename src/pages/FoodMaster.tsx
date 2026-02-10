@@ -54,6 +54,21 @@ const FoodMaster = () => {
     }
   };
 
+  const getImageSrc = (food: any) => {
+    const fallbackImage = food.category === 'drink' 
+      ? '/images/default-drink.jpg' 
+      : '/images/default-food.jpg';
+    
+    return food.image_url || fallbackImage;
+  };
+
+  const handleImageError = (e: React.SyntheticEvent<HTMLImageElement>, category: string) => {
+    const fallbackImage = category === 'drink' 
+      ? '/images/default-drink.jpg' 
+      : '/images/default-food.jpg';
+    e.currentTarget.src = fallbackImage;
+  };
+
   return (
     <Box>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 3 }}>
@@ -82,7 +97,15 @@ const FoodMaster = () => {
             {foods.map((food) => (
               <TableRow key={food.id}>
                 <TableCell>
-                  <Avatar variant="rounded" src={food.image_url} alt={food.name} />
+                  <Avatar 
+                    variant="rounded" 
+                    src={getImageSrc(food)} 
+                    alt={food.name}
+                    imgProps={{
+                      onError: (e: React.SyntheticEvent<HTMLImageElement>) => 
+                        handleImageError(e, food.category)
+                    }}
+                  />
                 </TableCell>
                 <TableCell sx={{ fontWeight: 'medium' }}>{food.name}</TableCell>
                 <TableCell>

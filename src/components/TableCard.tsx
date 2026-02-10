@@ -11,11 +11,12 @@ interface Table {
 
 interface TableCardProps {
   table: Table;
-  onOpenOrder: (tableId: number) => void;
+  onOpenOrder?: (tableId: number) => void;
 }
 
 const TableCard = ({ table, onOpenOrder }: TableCardProps) => {
   const isAvailable = table.status === 'available';
+  const isGuest = !onOpenOrder;
 
   return (
     <Card sx={{ 
@@ -45,16 +46,24 @@ const TableCard = ({ table, onOpenOrder }: TableCardProps) => {
       </CardContent>
 
       <Box sx={{ p: 2, mt: 'auto' }}>
-        <Button 
-          fullWidth 
-          variant="contained" 
-          color={isAvailable ? 'primary' : 'inherit'}
-          disabled={!isAvailable}
-          startIcon={isAvailable ? <PlayArrow /> : <Lock />}
-          onClick={() => onOpenOrder(table.id)}
-        >
-          {isAvailable ? 'Open Order' : 'Occupied'}
-        </Button>
+        {isGuest ? (
+          // Guest View: Just a text indicator or nothing
+          <Typography variant="caption" color="text.disabled" textAlign="center" display="block">
+            Login to open orders
+          </Typography>
+        ) : (
+          // Staff View: The interactive button
+          <Button 
+            fullWidth 
+            variant="contained" 
+            color={isAvailable ? 'primary' : 'inherit'}
+            disabled={!isAvailable}
+            startIcon={isAvailable ? <PlayArrow /> : <Lock />}
+            onClick={() => onOpenOrder(table.id)}
+          >
+            {isAvailable ? 'Open Order' : 'Occupied'}
+          </Button>
+        )}
       </Box>
     </Card>
   );

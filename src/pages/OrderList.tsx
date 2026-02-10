@@ -14,14 +14,12 @@ const OrderList = () => {
   const [orders, setOrders] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   
-  // Filter States
   const [status, setStatus] = useState('all');
   const [search, setSearch] = useState('');
 
   const fetchOrders = useCallback(async () => {
     setLoading(true);
     try {
-      // Build query params
       const params: any = {};
       if (status !== 'all') params.status = status;
       if (search) params.search = search;
@@ -36,15 +34,13 @@ const OrderList = () => {
   }, [status, search]);
 
   useEffect(() => {
-    // Small debounce for search can be added here
     fetchOrders();
   }, [fetchOrders]);
 
   const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'pending': return 'warning';
-      case 'completed': return 'success';
-      case 'cancelled': return 'error';
+    switch (status.toLowerCase()) {
+      case 'open': return 'warning'; 
+      case 'closed': return 'success';
       default: return 'default';
     }
   };
@@ -80,9 +76,8 @@ const OrderList = () => {
                 onChange={(e) => setStatus(e.target.value)}
               >
                 <MenuItem value="all">All Statuses</MenuItem>
-                <MenuItem value="pending">Pending</MenuItem>
-                <MenuItem value="completed">Completed</MenuItem>
-                <MenuItem value="cancelled">Cancelled</MenuItem>
+                <MenuItem value="open">Open</MenuItem>
+                <MenuItem value="closed">Closed</MenuItem>
               </Select>
             </FormControl>
           </Grid>
@@ -124,8 +119,8 @@ const OrderList = () => {
               orders.map((order) => (
                 <TableRow key={order.id} hover>
                   <TableCell>#{order.id}</TableCell>
-                  <TableCell>Table {order.table_number}</TableCell>
-                  <TableCell>{order.waiter_name}</TableCell>
+                  <TableCell>{order.table.table_number}</TableCell>
+                  <TableCell>{order.waiter.name}</TableCell>
                   <TableCell>
                     <Chip 
                       label={order.status.toUpperCase()} 
